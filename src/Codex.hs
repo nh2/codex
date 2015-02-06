@@ -141,10 +141,16 @@ assembly cx dependencies projectHash workspaceProjects o = do
       contents <- traverse TLIO.readFile files
       let xs = concat $ fmap TextL.lines contents
       let ys = if sorted then List.sort xs else xs
-      TLIO.writeFile o $ TextL.unlines (concat [headers, ys])
+      TLIO.writeFile o $ TextL.unlines (concat [headers, uniq ys])
     tags i = packageTags cx i
     headers = if tagsFileHeader cx then fmap TextL.pack [headerFormat, headerSorted, headerHash] else []
     headerFormat = "!_TAG_FILE_FORMAT\t2"
     headerSorted = concat ["!_TAG_FILE_SORTED\t", if sorted then "1" else "0"]
     headerHash = concat ["!_TAG_FILE_CODEX\t", tagsFileHash cx dependencies projectHash]
     sorted = tagsFileSorted cx
+
+
+uniq :: (Eq a) => [a] -> [a]
+uniq []                = []
+uniq (x:y:xs) | x == y = uniq (x:xs)
+uniq (x:xs)            = x : uniq xs
